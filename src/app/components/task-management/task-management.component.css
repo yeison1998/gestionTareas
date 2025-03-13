@@ -1,0 +1,23 @@
+.bi-star-fill {
+    color: gold;
+}
+
+.btn-outline-success {
+    margin-right: 10px;
+}
+
+.space-margin-right {
+    margin-right: 10px;
+}
+
+.bi-check-circle {
+    display: none;
+}
+
+.change-icon:hover .bi-circle {
+    display: none;
+}
+
+.change-icon:hover .bi-check-circle {
+    display: inline;
+}

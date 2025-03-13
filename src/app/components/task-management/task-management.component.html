@@ -1,0 +1,54 @@
+<div class="container mh-100 vh-100 d-flex flex-column justify-content-between">
+    <div class="mb-3 mt-5">
+        <h2 class="text-center">Gestión de tareas</h2>
+    </div>
+    <div class="row justify-content-around">
+        @for (task of tasks(); track $index) {
+        <div class="card mt-2">
+            <div class="card-body d-flex">
+                <div class="space-margin-right change-icon">
+                    <i class="bi bi-circle"></i>
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div>
+                    <p class="card-text">{{task.description}}</p>
+                </div>
+                <div class="ms-auto">
+                    @if (task.isImportant) {
+                    <i class="bi bi-star-fill"></i>
+                    }@else {
+                    <i class="bi bi-star"></i>
+                    }
+                </div>
+            </div>
+        </div>
+        }
+
+        <h4 class="mt-4"><strong>Completadas</strong></h4>
+        <div class="card mt-2">
+            <div class="card-body d-flex">
+                <div class="space-margin-right">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div>
+                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the
+                        card's
+                        content.</p>
+                </div>
+                <div class="ms-auto">
+                    <!-- <i class="bi bi-star"></i> -->
+                    <i class="bi bi-star-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3 pb-3 w-100">
+        <form action="" [formGroup]="formTask" (ngSubmit)="addTask()">
+            <div class="input-group flex-nowrap input-group-bottom">
+                <span class="input-group-text" id="addon-wrapping"> <i class="bi bi-plus"></i> </span>
+                <input type="text" class="form-control" placeholder="Agregar nueva tarea" aria-label="Add new task"
+                    aria-describedby="addon-wrapping" formControlName="description">
+            </div>
+        </form>
+    </div>
+</div>

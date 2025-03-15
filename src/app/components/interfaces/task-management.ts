@@ -1,5 +1,5 @@
 export interface TaskManagement {
-    isComplete: boolean;
+    isCompleted: boolean;
     isImportant: boolean;
     description: string;
     id: number;

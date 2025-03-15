@@ -3,6 +3,8 @@ import { TaskManagement } from '../interfaces/task-management';
 import { AbstractControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { TaskManagementService } from '../services/task-management.service';
+import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-task-management',
   standalone: true,
@@ -13,13 +15,18 @@ import { CommonModule } from '@angular/common';
 export class TaskManagementComponent implements OnInit {
 
   tasks = signal<TaskManagement[]>([]);
+  badgeCompleted = signal(0);
+  badge = signal(0);
 
   formTask!: FormGroup;
+
   fb = inject(FormBuilder);
-  badge = signal(0);
+  taskManagementService = inject(TaskManagementService);
+  toastr = inject(ToastrService);
 
   ngOnInit(): void {
     this.setForm();
+    this.getTasks();
   }
 
   setForm() {
@@ -27,45 +34,79 @@ export class TaskManagementComponent implements OnInit {
       id: 0,
       isComplete: false,
       isImportant: false,
-      description: ['', Validators.required]
+      description: ['', [Validators.required, Validators.minLength(3)]]
     });
   }
 
-  changeComplete(complete: TaskManagement) {
-    this.tasks.update(tasks => tasks.map(task => {
-      if (task.id === complete.id) {
-        task.isComplete = !task.isComplete;
+  getTasks(): void {
+    this.taskManagementService.getTasks().subscribe({
+      next: (res) => {
+        this.tasks.set(res);
+        let countCompleted = 0;
+        let countIncomplete = 0;
+        this.tasks().forEach(task => {
+          task.isCompleted ? countCompleted++ : countIncomplete++ ; 
+          this.badgeCompleted.set(countCompleted);
+          this.badge.set(countIncomplete);
+        });
       }
-      return task;
-    }));
+    });
   }
 
-  changeImportant(importante: TaskManagement) {
-    this.tasks.update(tasks => tasks.map(task => {
-      if (task.id === importante.id) {
-        task.isImportant = !task.isImportant;
+  saveTask(): void {
+    this.formTask.markAllAsTouched();
+    if (this.formTask.valid)
+      this.taskManagementService.saveTask(this.formTask.value).subscribe({
+        next: () => {
+          this.getTasks();
+          this.description.reset();
+          this.toastr.success('', 'Tarea agregada con éxito!');
+        }, error: () => {
+          this.toastr.error('Ha ocurrido un error al intentar actualizar, Vuélvalo a intentar mas tarde', 'Error!');
+        }
+      });
+  }
+
+  updateIsImportantTask(task: TaskManagement, section: string): void {
+    section === 'isComplete' ? task.isCompleted = !task.isCompleted : task.isImportant = !task.isImportant;
+    this.taskManagementService.updateTask(task).subscribe({
+      next: (res) => {
+        this.getTasks();
+        section === 'isComplete' ? this.showMessageChangeComplete(res.data) : this.showMessageChangeImportant(res.data);
+      }, error: () => {
+        this.toastr.error('Ha ocurrido un error al intentar actualizar, Vuélvalo a intentar mas tarde', 'Error!');
       }
-      return task;
-    }));
+    });
   }
 
-  addTask() {
-    this.id.setValue(this.id.value + 1);
-    this.tasks.update(tasks => [...tasks, this.formTask.value]);
-    console.log(this.tasks().length);
-     
-    this.badge.set(this.tasks().length);
-  }
-
-  updateTask(taskUpdate: TaskManagement) {
-    this.tasks.update(tasks => tasks.map(task => {
-      if (task.id === taskUpdate.id) {
-        task.isImportant = !task.isImportant;
-        return {...task, ...taskUpdate}
+  taskDelete(id: number): void {
+    this.taskManagementService.deleteTask(id).subscribe({
+      next: () => {
+        this.toastr.success('', 'Tarea eliminada con éxito!');
+        this.getTasks();
+      }, error: () => {
+        this.toastr.error('Ha ocurrido un error al intentar actualizar, Vuélvalo a intentar mas tarde', 'Error!');
       }
-      return task;
-    }));
+    });
   }
 
+  showMessageChangeComplete(task: TaskManagement) {
+    if (task.isCompleted) {
+      this.toastr.info('Has completado esta tarea!', '¡Genial!');
+    } else {
+      this.toastr.warning('La tarea ha sido marcada como pendiente nuevamente!', 'Importante!');
+    }
+  }
+
+  showMessageChangeImportant(task: TaskManagement) {
+    if (task.isImportant) {
+      this.toastr.info('Has agregado una nueva tarea importante!', '¡Genial!');
+    } else {
+      this.toastr.warning('La tarea ya no esta marcada como importante!', 'Importante!');
+    }
+  }
   get id(): AbstractControl { return this.formTask.get('id')! }
+  get description(): AbstractControl { return this.formTask.get('description')! }
+  get isImportant(): AbstractControl { return this.formTask.get('isImportant')! }
+  get isComplete(): AbstractControl { return this.formTask.get('isComplete')! }
 }

@@ -53,7 +53,7 @@
                 <span class="text-error">Mínimo de caracteres 3</span>
             }
             <div class="input-group flex-nowrap input-group-bottom">
-                <span class="input-group-text" id="addon-wrapping"> <i class="bi bi-plus"></i> </span>
+                <span (click)="saveTask()" class="input-group-text" id="addon-wrapping"> <i class="bi bi-plus"></i> </span>
                 <input type="text" class="form-control" placeholder="Agregar nueva tarea" aria-label="Add new task"
                     aria-describedby="addon-wrapping" formControlName="description">
                 
